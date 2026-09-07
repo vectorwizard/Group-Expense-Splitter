@@ -13,7 +13,6 @@ DEBUG = os.getenv(
     'True'
 ).lower() in ('1', 'true', 'yes', 'on')
 
-
 SECRET_KEY = os.getenv(
     'SECRET_KEY',
     'dev-only-secret-key-change-me'
@@ -28,7 +27,6 @@ ALLOWED_HOSTS = [
     ).split(',')
     if host.strip()
 ]
-
 
 if '*' not in ALLOWED_HOSTS:
     render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
@@ -104,7 +102,6 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
 ASGI_APPLICATION = 'config.asgi.application'
 
 
@@ -114,12 +111,15 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 sqlite_path = os.getenv('SQLITE_PATH', '').strip()
 
-
 if sqlite_path:
     DB_PATH = Path(sqlite_path)
+
+    # Relative paths such as data/db.sqlite3 are relative
+    # to the Django project root.
+    if not DB_PATH.is_absolute():
+        DB_PATH = BASE_DIR / DB_PATH
 else:
     DB_PATH = BASE_DIR / 'data' / 'db.sqlite3'
-
 
 DB_PATH.parent.mkdir(
     parents=True,
@@ -167,11 +167,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # --------------------------------------------------
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -180,7 +178,6 @@ USE_TZ = True
 # --------------------------------------------------
 
 STATIC_URL = 'static/'
-
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_STORAGE = (
@@ -202,7 +199,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 frontend_url = os.getenv(
     'FRONTEND_URL',
     'http://localhost:5173'
-).rstrip('/')
+).strip().rstrip('/')
 
 
 CORS_ALLOWED_ORIGINS = [
@@ -218,7 +215,7 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 
-csrf_origins = [
+CSRF_TRUSTED_ORIGINS = [
     url.strip().rstrip('/')
     for url in os.getenv(
         'CSRF_TRUSTED_ORIGINS',
@@ -228,9 +225,6 @@ csrf_origins = [
 ]
 
 
-CSRF_TRUSTED_ORIGINS = csrf_origins
-
-
 # --------------------------------------------------
 # Cookies / HTTPS
 # --------------------------------------------------
@@ -238,21 +232,17 @@ CSRF_TRUSTED_ORIGINS = csrf_origins
 if DEBUG:
 
     SESSION_COOKIE_SECURE = False
-
     CSRF_COOKIE_SECURE = False
 
     SESSION_COOKIE_SAMESITE = 'Lax'
-
     CSRF_COOKIE_SAMESITE = 'Lax'
 
 else:
 
     SESSION_COOKIE_SECURE = True
-
     CSRF_COOKIE_SECURE = True
 
     SESSION_COOKIE_SAMESITE = 'None'
-
     CSRF_COOKIE_SAMESITE = 'None'
 
     SECURE_PROXY_SSL_HEADER = (
@@ -263,10 +253,8 @@ else:
     SECURE_SSL_REDIRECT = True
 
     SECURE_HSTS_SECONDS = 31536000
-
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 
 SESSION_COOKIE_HTTPONLY = True
-
 CSRF_COOKIE_HTTPONLY = False
